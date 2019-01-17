@@ -153,6 +153,10 @@ class BrowseController {
     this.socketService.emit('updateDb', item);
   }
 
+  deleteFolder(curUri, item) {
+    this.socketService.emit('deleteFolder', {'curUri':curUri, 'item':item});
+  }
+
   search() {
     if (this.searchField.length >= 3) {
       this.browseService.isSearching = true;
@@ -177,6 +181,11 @@ class BrowseController {
     }
   }
 
+  searchSubmit($event) {
+    $event.preventDefault(); // Search has been done on input change, so don't submit
+    this.$document[0].activeElement.blur(); // blur the input so that iOS keyboard closes
+  }
+
   showHamburgerMenu(item) {
     let ret = item.type === 'radio-favourites' || item.type === 'radio-category';
     return !ret;
@@ -187,19 +196,21 @@ class BrowseController {
         item.type === 'mywebradio' || item.type === 'webradio' ||
         item.type === 'playlist' || item.type === 'cuesong' ||
         item.type === 'remdisk' || item.type === 'cuefile' ||
-        item.type === 'folder-with-favourites';
+        item.type === 'folder-with-favourites' || item.type === 'internal-folder';
     return ret;
   }
   showAddToQueueButton(item) {
     let ret = item.type === 'folder' || item.type === 'song' ||
         item.type === 'mywebradio' || item.type === 'webradio' ||
         item.type === 'playlist' || item.type === 'remdisk' ||
-        item.type === 'cuefile' || item.type === 'folder-with-favourites';
+        item.type === 'cuefile' || item.type === 'folder-with-favourites' ||
+        item.type === 'internal-folder';
     return ret;
   }
   showAddToPlaylist(item) {
     let ret = item.type === 'folder' || item.type === 'song' ||
-    item.type === 'remdisk' || item.type === 'folder-with-favourites';
+    item.type === 'remdisk' || item.type === 'folder-with-favourites' ||
+    item.type === 'internal-folder';
     return ret;
   }
 
@@ -310,11 +321,19 @@ class BrowseController {
 
           this.table += `
             <div class="description breakMe"
-                onclick="${angularThis}.clickListItemByIndex(${listIndex}, ${itemIndex})">
-              <div class="title ${(item.artist || item.album) ? '' : 'onlyTitle'}">
-                ${(item.title) ? item.title : ''}
-              </div>
-              <div class="artist-album ${(item.artist || item.album) ? '' : 'onlyTitle'}">
+                onclick="${angularThis}.clickListItemByIndex(${listIndex}, ${itemIndex})">`;
+                if (item.tagImage) {
+                  this.table +=  `<img class="tag-image" src="${this.playerService.getAlbumart(item.tagImage)}" alt=""/>
+                    <div class="title tagImage">
+                      ${(item.title) ? item.title : ''}
+                    </div>`;
+                } else {
+                  this.table += `<div class="title ${(item.artist || item.album) ? '' : 'onlyTitle'}">
+                    ${(item.title) ? item.title : ''}
+                  </div>`;
+                }
+
+              this.table += `<div class="artist-album ${(item.artist || item.album) ? '' : 'onlyTitle'}">
                 ${(item.artist) ? item.artist : ''} ${(item.album) ? '- ' + item.album : ''}
               </div>
             </div>`;

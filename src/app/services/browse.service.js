@@ -224,7 +224,6 @@ class BrowseService {
   initService() {
     this.socketService.emit('getBrowseFilters');
     this.socketService.emit('getBrowseSources');
-    this._isBrowsing = false;
     this._listBy = 'track';
     //TODO or from sessionStorage
     // this._showGridView = false;
